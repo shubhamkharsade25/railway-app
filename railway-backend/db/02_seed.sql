@@ -53,18 +53,25 @@ INSERT INTO STATION (Station_Name, Station_Code, City) VALUES
 -- IDs assigned: MMCT=1, BVI=2, VAPI=3, ST=4, BH=5, BRC=6, ANND=7, ADI=8, PUNE=9, LNL=10, NK=11, NDLS=12
 
 -- ============================================================
--- TRAINS (6)
+-- TRAINS (12: 6 Outbound + 6 Return)
 -- SAMPLE data — not official Indian Railways data.
 -- ============================================================
 INSERT INTO TRAIN (Train_Number, Train_Name, Train_Type, Is_Active) VALUES
-('12901', 'Gujarat Express (Sample)',     'EXPRESS',   1),
-('12933', 'Karnavati Express (Sample)',   'EXPRESS',   1),
-('12009', 'Shatabdi Express (Sample)',    'SUPERFAST', 1),
-('19411', 'Konkan Express (Sample)',      'EXPRESS',   1),
-('12261', 'Duronto Express (Sample)',     'SUPERFAST', 1),
-('59507', 'Mumbai Local (Sample)',        'LOCAL',     1);
+('12901', 'Gujarat Express (Sample)',            'EXPRESS',   1),
+('12933', 'Karnavati Express (Sample)',          'EXPRESS',   1),
+('12009', 'Shatabdi Express (Sample)',           'SUPERFAST', 1),
+('19411', 'Konkan Express (Sample)',             'EXPRESS',   1),
+('12261', 'Duronto Express (Sample)',            'SUPERFAST', 1),
+('59507', 'Mumbai Local (Sample)',               'LOCAL',     1),
+('12902', 'Gujarat Express Return (Sample)',     'EXPRESS',   1),
+('12934', 'Karnavati Express Return (Sample)',   'EXPRESS',   1),
+('12010', 'Shatabdi Express Return (Sample)',    'SUPERFAST', 1),
+('19412', 'Konkan Express Return (Sample)',      'EXPRESS',   1),
+('12262', 'Duronto Express Return (Sample)',     'SUPERFAST', 1),
+('59508', 'Mumbai Local Return (Sample)',        'LOCAL',     1);
 
 -- IDs: Gujarat=1, Karnavati=2, Shatabdi=3, Konkan=4, Duronto=5, Local=6
+-- Return IDs: Gujarat Ret=7, Karnavati Ret=8, Shatabdi Ret=9, Konkan Ret=10, Duronto Ret=11, Local Ret=12
 
 -- ============================================================
 -- ROUTES (TRAIN_STATION)
@@ -90,7 +97,6 @@ INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departur
 (2, 8, 6, '21:45', NULL,    492);
 
 -- Train 3: Shatabdi Express (Sample)  MMCT -> BVI -> LNL -> PUNE
--- (Mumbai to Pune route — shares BVI with Gujarat Express, different direction)
 INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
 (3, 1, 1, NULL,      '06:00', 0),
 (3, 2, 2, '06:30', '06:32', 28),
@@ -98,7 +104,6 @@ INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departur
 (3, 9, 4, '09:00', NULL,    192);   -- Pune
 
 -- Train 4: Konkan Express (Sample)  PUNE -> NK -> NDLS
--- Pune to Delhi, does NOT visit Mumbai Central
 INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
 (4, 9,  1, NULL,      '20:00', 0),
 (4, 11, 2, '23:30', '23:35', 180),  -- Nashik Road
@@ -113,6 +118,48 @@ INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departur
 INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
 (6, 1, 1, NULL,      '08:00', 0),
 (6, 2, 2, '08:45', NULL,    28);
+
+-- Train 7: Gujarat Express Return (Sample)  ADI -> BRC -> BH -> ST -> VAPI -> BVI -> MMCT
+INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
+(7, 8, 1, NULL,    '06:30', 0),    -- Ahmedabad (origin)
+(7, 6, 2, '07:55', '08:00', 100),  -- Vadodara
+(7, 5, 3, '08:45', '08:47', 143),  -- Bharuch
+(7, 4, 4, '09:50', '09:55', 229),  -- Surat
+(7, 3, 5, '11:15', '11:17', 334),  -- Vapi
+(7, 2, 6, '13:00', '13:02', 464),  -- Borivali
+(7, 1, 7, '13:45', NULL,    492);  -- Mumbai Central (terminus)
+
+-- Train 8: Karnavati Express Return (Sample)  ADI -> ANND -> BRC -> ST -> VAPI -> MMCT
+INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
+(8, 8, 1, NULL,    '05:00', 0),    -- Ahmedabad
+(8, 7, 2, '05:40', '05:42', 60),   -- Anand (Stop #2, 60km)
+(8, 6, 3, '06:25', '06:30', 100),  -- Vadodara
+(8, 4, 4, '08:05', '08:10', 229),  -- Surat
+(8, 3, 5, '09:25', '09:27', 334),  -- Vapi
+(8, 1, 6, '12:00', NULL,    492);  -- Mumbai Central
+
+-- Train 9: Shatabdi Express Return (Sample)  PUNE -> LNL -> BVI -> MMCT
+INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
+(9, 9, 1, NULL,    '15:00', 0),    -- Pune
+(9, 10, 2, '16:00', '16:02', 96),  -- Lonavala
+(9, 2, 3, '17:25', '17:27', 164),  -- Borivali
+(9, 1, 4, '18:15', NULL,    192);  -- Mumbai Central
+
+-- Train 10: Konkan Express Return (Sample)  NDLS -> NK -> PUNE
+INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
+(10, 12, 1, NULL,    '06:00', 0),
+(10, 11, 2, '21:00', '21:05', 1295),
+(10, 9, 3, '01:30', NULL,    1475);
+
+-- Train 11: Duronto Express Return (Sample)  ADI -> MMCT (non-stop)
+INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
+(11, 8, 1, NULL,    '23:15', 0),
+(11, 1, 2, '05:45', NULL,    492);
+
+-- Train 12: Mumbai Local Return (Sample)  BVI -> MMCT (local)
+INSERT INTO TRAIN_STATION (Train_ID, Station_ID, Stop_No, Arrival_Time, Departure_Time, Distance_Km) VALUES
+(12, 2, 1, NULL,    '18:00', 0),
+(12, 1, 2, '18:45', NULL,    28);
 
 -- ============================================================
 -- COACHES
@@ -145,75 +192,93 @@ INSERT INTO COACH (Train_ID, Coach_Number, Class_Type) VALUES
 INSERT INTO COACH (Train_ID, Coach_Number, Class_Type) VALUES
 (6,'S1','SL');
 
+-- Train 7 (Gujarat Express Return)
+INSERT INTO COACH (Train_ID, Coach_Number, Class_Type) VALUES
+(7,'S1','SL'), (7,'S2','SL'), (7,'B1','3A'), (7,'A1','2A');
+
+-- Train 8 (Karnavati Express Return)
+INSERT INTO COACH (Train_ID, Coach_Number, Class_Type) VALUES
+(8,'S1','SL'), (8,'S2','SL'), (8,'B1','3A'), (8,'A1','2A');
+
+-- Train 9 (Shatabdi Return)
+INSERT INTO COACH (Train_ID, Coach_Number, Class_Type) VALUES
+(9,'C1','CC'), (9,'A1','2A');
+
+-- Train 10 (Konkan Return)
+INSERT INTO COACH (Train_ID, Coach_Number, Class_Type) VALUES
+(10,'S1','SL'), (10,'S2','SL'), (10,'B1','3A'), (10,'A1','2A'), (10,'H1','1A');
+
+-- Train 11 (Duronto Return)
+INSERT INTO COACH (Train_ID, Coach_Number, Class_Type) VALUES
+(11,'S1','SL'), (11,'S2','SL'), (11,'B1','3A'), (11,'A1','2A');
+
+-- Train 12 (Local Return)
+INSERT INTO COACH (Train_ID, Coach_Number, Class_Type) VALUES
+(12,'S1','SL');
+
 -- ============================================================
--- SEATS (generated via procedure for correct counts)
+-- SEATS (generated via procedure for all coaches)
 -- SL: 72 seats, 3A: 64, 2A: 48, 1A: 24, CC: 52
--- Seat type pattern (seat_no % 8):
---  1=LOWER, 2=MIDDLE, 3=UPPER, 4=SIDE_LOWER,
---  5=LOWER, 6=MIDDLE, 7=UPPER, 0=SIDE_UPPER
 -- ============================================================
 
-DROP PROCEDURE IF EXISTS generate_seats;
+DROP PROCEDURE IF EXISTS generate_all_seats;
 
 DELIMITER //
-CREATE PROCEDURE generate_seats(
-    IN p_coach_id INT,
-    IN p_seat_count INT
-)
+CREATE PROCEDURE generate_all_seats()
 BEGIN
-    DECLARE i INT DEFAULT 1;
-    DECLARE seat_type VARCHAR(20);
-    WHILE i <= p_seat_count DO
-        CASE (i % 8)
-            WHEN 1 THEN SET seat_type = 'LOWER';
-            WHEN 2 THEN SET seat_type = 'MIDDLE';
-            WHEN 3 THEN SET seat_type = 'UPPER';
-            WHEN 4 THEN SET seat_type = 'SIDE_LOWER';
-            WHEN 5 THEN SET seat_type = 'LOWER';
-            WHEN 6 THEN SET seat_type = 'MIDDLE';
-            WHEN 7 THEN SET seat_type = 'UPPER';
-            ELSE        SET seat_type = 'SIDE_UPPER';
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_coach_id INT;
+    DECLARE v_class VARCHAR(10);
+    DECLARE v_seat_count INT;
+    DECLARE i INT;
+    DECLARE v_seat_type VARCHAR(20);
+
+    DECLARE cur CURSOR FOR SELECT Coach_ID, Class_Type FROM COACH;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO v_coach_id, v_class;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        CASE v_class
+            WHEN 'SL' THEN SET v_seat_count = 72;
+            WHEN '3A' THEN SET v_seat_count = 64;
+            WHEN '2A' THEN SET v_seat_count = 48;
+            WHEN '1A' THEN SET v_seat_count = 24;
+            WHEN 'CC' THEN SET v_seat_count = 52;
+            ELSE SET v_seat_count = 72;
         END CASE;
-        INSERT INTO SEAT (Coach_ID, Seat_Number, Seat_Type) VALUES (p_coach_id, i, seat_type);
-        SET i = i + 1;
-    END WHILE;
+
+        SET i = 1;
+        WHILE i <= v_seat_count DO
+            CASE (i % 8)
+                WHEN 1 THEN SET v_seat_type = 'LOWER';
+                WHEN 2 THEN SET v_seat_type = 'MIDDLE';
+                WHEN 3 THEN SET v_seat_type = 'UPPER';
+                WHEN 4 THEN SET v_seat_type = 'SIDE_LOWER';
+                WHEN 5 THEN SET v_seat_type = 'LOWER';
+                WHEN 6 THEN SET v_seat_type = 'MIDDLE';
+                WHEN 7 THEN SET v_seat_type = 'UPPER';
+                ELSE        SET v_seat_type = 'SIDE_UPPER';
+            END CASE;
+
+            INSERT INTO SEAT (Coach_ID, Seat_Number, Seat_Type) 
+            VALUES (v_coach_id, i, v_seat_type);
+
+            SET i = i + 1;
+        END WHILE;
+    END LOOP;
+
+    CLOSE cur;
 END //
 DELIMITER ;
 
--- Generate seats for each coach
--- Train 1 (Gujarat): coaches 1,2=SL(72), 3=3A(64), 4=2A(48)
-CALL generate_seats(1, 72);
-CALL generate_seats(2, 72);
-CALL generate_seats(3, 64);
-CALL generate_seats(4, 48);
-
--- Train 2 (Karnavati): coaches 5,6=SL(72), 7=3A(64), 8=2A(48)
-CALL generate_seats(5, 72);
-CALL generate_seats(6, 72);
-CALL generate_seats(7, 64);
-CALL generate_seats(8, 48);
-
--- Train 3 (Shatabdi): coach 9=CC(52), 10=2A(48)
-CALL generate_seats(9, 52);
-CALL generate_seats(10, 48);
-
--- Train 4 (Konkan): coaches 11,12=SL(72), 13=3A(64), 14=2A(48), 15=1A(24)
-CALL generate_seats(11, 72);
-CALL generate_seats(12, 72);
-CALL generate_seats(13, 64);
-CALL generate_seats(14, 48);
-CALL generate_seats(15, 24);
-
--- Train 5 (Duronto): coaches 16,17=SL(72), 18=3A(64), 19=2A(48)
-CALL generate_seats(16, 72);
-CALL generate_seats(17, 72);
-CALL generate_seats(18, 64);
-CALL generate_seats(19, 48);
-
--- Train 6 (Local): coach 20=SL(72)
-CALL generate_seats(20, 72);
-
-DROP PROCEDURE IF EXISTS generate_seats;
+CALL generate_all_seats();
+DROP PROCEDURE IF EXISTS generate_all_seats;
 
 -- ============================================================
 -- CLASS_FARE (SAMPLE rates — not official)
