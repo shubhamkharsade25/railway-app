@@ -161,4 +161,13 @@ public class TrainRepository {
         }
         jdbc.batchUpdate(sql, batchArgs);
     }
+
+    public void deleteRouteStop(int trainId, int stationId) {
+        jdbc.update("DELETE FROM TRAIN_STATION WHERE Train_ID = ? AND Station_ID = ?", trainId, stationId);
+    }
+
+    public void deleteCoach(int coachId) {
+        // SEAT rows cascade delete automatically because fk_seat_coach ON DELETE CASCADE
+        jdbc.update("DELETE FROM COACH WHERE Coach_ID = ?", coachId);
+    }
 }

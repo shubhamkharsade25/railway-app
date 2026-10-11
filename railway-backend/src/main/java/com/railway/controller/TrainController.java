@@ -63,12 +63,24 @@ public class TrainController {
         return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).build();
     }
 
+    @DeleteMapping("/{id}/route/stops/{stationId}")
+    public ResponseEntity<Void> deleteRouteStop(@PathVariable int id, @PathVariable int stationId) {
+        trainService.deleteRouteStop(id, stationId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/coaches")
     public ResponseEntity<Void> addCoach(
             @PathVariable int id,
             @jakarta.validation.Valid @RequestBody com.railway.dto.CoachRequest req) {
         trainService.addCoachWithSeats(id, req);
         return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{id}/coaches/{coachId}")
+    public ResponseEntity<Void> deleteCoach(@PathVariable int id, @PathVariable int coachId) {
+        trainService.deleteCoach(id, coachId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/route")

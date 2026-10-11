@@ -95,4 +95,16 @@ public class TrainService {
         int coachId = trainRepository.insertCoach(trainId, req.coachNumber().trim().toUpperCase(), req.classType());
         trainRepository.batchInsertSeats(coachId, req.seatCount());
     }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteRouteStop(int trainId, int stationId) {
+        getById(trainId);
+        trainRepository.deleteRouteStop(trainId, stationId);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteCoach(int trainId, int coachId) {
+        getById(trainId);
+        trainRepository.deleteCoach(coachId);
+    }
 }

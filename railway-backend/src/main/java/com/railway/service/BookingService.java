@@ -264,6 +264,31 @@ public class BookingService {
         return bookingRepository.findAllBookings(status);
     }
 
+    @Transactional
+    public BookingResponse updateBooking(String pnr, com.railway.dto.UpdateBookingRequest req) {
+        Map<String, Object> booking = bookingRepository.findByPnr(pnr)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found for PNR: " + pnr));
+
+        int bookingId = ((Number) booking.get("Booking_ID")).intValue();
+
+        // If status is transitioning to CANCELLED, free seat reservations
+        if ("CANCELLED".equalsIgnoreCase(req.status())) {
+            bookingRepository.cancelReservations(bookingId);
+        }
+
+        bookingRepository.updateBookingDetails(bookingId, req.status(), req.contactEmail(), req.contactPhone());
+        return getByPnr(pnr);
+    }
+
+    @Transactional
+    public void deleteBooking(String pnr) {
+        Map<String, Object> booking = bookingRepository.findByPnr(pnr)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found for PNR: " + pnr));
+
+        int bookingId = ((Number) booking.get("Booking_ID")).intValue();
+        bookingRepository.deleteBookingCascade(bookingId);
+    }
+
     // ---- Helpers ----
 
     private String generateUniquePnr() {

@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -192,6 +193,53 @@ public class BookingRepository {
             return jdbc.queryForList(baseSql + " WHERE b.Status = ? ORDER BY b.Booked_At DESC", status.trim().toUpperCase());
         }
         return jdbc.queryForList(baseSql + " ORDER BY b.Booked_At DESC");
+    }
+
+    public void updateBookingDetails(int bookingId, String status, String email, String phone) {
+        StringBuilder sql = new StringBuilder("UPDATE BOOKING SET ");
+        List<Object> params = new ArrayList<>();
+        boolean first = true;
+
+        if (status != null && !status.isBlank()) {
+            sql.append("Status = ?");
+            params.add(status.trim().toUpperCase());
+            first = false;
+        }
+        if (email != null && !email.isBlank()) {
+            if (!first) sql.append(", ");
+            sql.append("Contact_Email = ?");
+            params.add(email.trim());
+            first = false;
+        }
+        if (phone != null && !phone.isBlank()) {
+            if (!first) sql.append(", ");
+            sql.append("Contact_Phone = ?");
+            params.add(phone.trim());
+            first = false;
+        }
+
+        if (params.isEmpty()) return;
+
+        sql.append(" WHERE Booking_ID = ?");
+        params.add(bookingId);
+
+        jdbc.update(sql.toString(), params.toArray());
+    }
+
+    /**
+     * Delete a booking completely from the database, freeing all reservations and cleaning related tables.
+     */
+    public void deleteBookingCascade(int bookingId) {
+        // 1. Delete cancellation record if exists
+        jdbc.update("DELETE FROM CANCELLATION WHERE Booking_ID = ?", bookingId);
+        // 2. Delete payments
+        jdbc.update("DELETE FROM PAYMENT WHERE Booking_ID = ?", bookingId);
+        // 3. Delete seat reservations (frees seats instantly)
+        jdbc.update("DELETE FROM SEAT_RESERVATION WHERE Booking_ID = ?", bookingId);
+        // 4. Delete booking-passenger junction
+        jdbc.update("DELETE FROM BOOKING_PASSENGER WHERE Booking_ID = ?", bookingId);
+        // 5. Delete booking row
+        jdbc.update("DELETE FROM BOOKING WHERE Booking_ID = ?", bookingId);
     }
 
     /**

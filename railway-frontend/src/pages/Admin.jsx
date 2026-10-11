@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   getStations, createStation, updateStation, deleteStation,
   getTrains, createTrain, updateTrain, deleteTrain,
-  getTrainRoute, addRouteStop, addCoach, getAllBookings
+  getTrainRoute, addRouteStop, deleteRouteStop, addCoach,
+  getAllBookings, updateBooking, deleteBooking
 } from '../api/client';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { Plus, Edit2, Trash2, Route, Layers, AlertCircle, CheckCircle } from 'lucide-react';
@@ -24,6 +25,10 @@ export default function Admin() {
 
   const [trainForm, setTrainForm] = useState({ trainNumber: '', trainName: '', trainType: 'EXPRESS', isActive: true });
   const [editingTrainId, setEditingTrainId] = useState(null);
+
+  // Booking edit modal state
+  const [editingBookingPnr, setEditingBookingPnr] = useState(null);
+  const [bookingForm, setBookingForm] = useState({ status: 'CONFIRMED', contactEmail: '', contactPhone: '' });
 
   // Route editor states
   const [selectedTrainId, setSelectedTrainId] = useState('');
@@ -137,7 +142,7 @@ export default function Admin() {
     }
   };
 
-  // Route Stop Handler
+  // Route Stop Handlers
   const handleAddStop = async (e) => {
     e.preventDefault();
     if (!selectedTrainId) return;
@@ -155,6 +160,50 @@ export default function Admin() {
       const stops = await getTrainRoute(selectedTrainId);
       setRouteStops(stops);
       setStopForm({ stationId: '', stopNo: stops.length + 1, arrivalTime: '', departureTime: '', distanceKm: 0 });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeleteRouteStop = async (stationId) => {
+    if (!selectedTrainId) return;
+    if (!window.confirm('Are you sure you want to remove this stop from the route?')) return;
+    setError('');
+    setMessage('');
+    try {
+      await deleteRouteStop(selectedTrainId, stationId);
+      setMessage('Route stop removed successfully.');
+      const stops = await getTrainRoute(selectedTrainId);
+      setRouteStops(stops);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // Booking CRUD Handlers
+  const handleUpdateBooking = async (e) => {
+    e.preventDefault();
+    if (!editingBookingPnr) return;
+    setError('');
+    setMessage('');
+    try {
+      await updateBooking(editingBookingPnr, bookingForm);
+      setMessage(`Booking PNR ${editingBookingPnr} updated successfully in database.`);
+      setEditingBookingPnr(null);
+      loadData();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeleteBooking = async (pnr) => {
+    if (!window.confirm(`Permanently DELETE booking PNR ${pnr} from database? This will remove all associated ticket and payment records and release the reserved seats.`)) return;
+    setError('');
+    setMessage('');
+    try {
+      await deleteBooking(pnr);
+      setMessage(`Booking ${pnr} completely deleted from database and seats freed.`);
+      loadData();
     } catch (err) {
       setError(err.message);
     }
@@ -548,11 +597,12 @@ export default function Admin() {
                   <th>Arrival Time</th>
                   <th>Departure Time</th>
                   <th>Cumulative Distance</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {routeStops.length === 0 ? (
-                  <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No stops added yet.</td></tr>
+                  <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No stops added yet.</td></tr>
                 ) : (
                   routeStops.map((st) => (
                     <tr key={st.stopNo}>
@@ -561,6 +611,17 @@ export default function Admin() {
                       <td>{st.arrivalTime ? st.arrivalTime.substring(0, 5) : 'ORIGIN'}</td>
                       <td>{st.departureTime ? st.departureTime.substring(0, 5) : 'TERMINUS'}</td>
                       <td>{st.distanceKm} km</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                          title="Remove Stop"
+                          onClick={() => handleDeleteRouteStop(st.stationId)}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -584,6 +645,7 @@ export default function Admin() {
                 <th>Fare</th>
                 <th>Payment</th>
                 <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -603,6 +665,33 @@ export default function Admin() {
                     }`}>
                       {b.status}
                     </span>
+                  </td>
+                  <td style={{ textAlign: 'right', display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                      title="Edit Booking"
+                      onClick={() => {
+                        setEditingBookingPnr(b.pnr);
+                        setBookingForm({
+                          status: b.status,
+                          contactEmail: b.contactEmail || '',
+                          contactPhone: b.contactPhone || ''
+                        });
+                      }}
+                    >
+                      <Edit2 size={13} /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                      title="Delete Booking"
+                      onClick={() => handleDeleteBooking(b.pnr)}
+                    >
+                      <Trash2 size={13} /> Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -668,6 +757,70 @@ export default function Admin() {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Insert Coach & Seats
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Booking Modal */}
+      {editingBookingPnr && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div className="card" style={{ maxWidth: '440px', width: '90%' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+              Edit Booking PNR: {editingBookingPnr}
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+              Update ticket reservation status, email address, or passenger contact phone.
+            </p>
+
+            <form onSubmit={handleUpdateBooking}>
+              <div className="form-group">
+                <label className="form-label">Booking Status</label>
+                <select
+                  className="form-select"
+                  value={bookingForm.status}
+                  onChange={(e) => setBookingForm({ ...bookingForm, status: e.target.value })}
+                >
+                  <option value="CONFIRMED">CONFIRMED</option>
+                  <option value="CANCELLED">CANCELLED (Releases Seat)</option>
+                  <option value="FAILED">FAILED</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Contact Email</label>
+                <input
+                  type="email"
+                  className="form-input"
+                  value={bookingForm.contactEmail}
+                  onChange={(e) => setBookingForm({ ...bookingForm, contactEmail: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Contact Phone (10 digits)</label>
+                <input
+                  type="tel"
+                  maxLength="10"
+                  className="form-input"
+                  value={bookingForm.contactPhone}
+                  onChange={(e) => setBookingForm({ ...bookingForm, contactPhone: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setEditingBookingPnr(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Changes to DB
                 </button>
               </div>
             </form>

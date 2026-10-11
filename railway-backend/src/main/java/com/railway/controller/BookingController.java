@@ -47,6 +47,19 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getByPnr(pnr));
     }
 
+    @PutMapping("/{pnr}")
+    public ResponseEntity<BookingResponse> update(
+            @PathVariable String pnr,
+            @jakarta.validation.Valid @RequestBody com.railway.dto.UpdateBookingRequest req) {
+        return ResponseEntity.ok(bookingService.updateBooking(pnr, req));
+    }
+
+    @DeleteMapping("/{pnr}")
+    public ResponseEntity<Void> delete(@PathVariable String pnr) {
+        bookingService.deleteBooking(pnr);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{pnr}/ticket")
     public ResponseEntity<TicketDto> getTicket(@PathVariable String pnr) {
         return ResponseEntity.ok(bookingService.getTicket(pnr));

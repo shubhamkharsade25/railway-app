@@ -41,6 +41,7 @@ export const updateTrain = (id, payload) => request(`/trains/${id}`, { method: '
 export const deleteTrain = (id) => request(`/trains/${id}`, { method: 'DELETE' });
 export const getTrainRoute = (id) => request(`/trains/${id}/route`);
 export const addRouteStop = (trainId, payload) => request(`/trains/${trainId}/route/stops`, { method: 'POST', body: JSON.stringify(payload) });
+export const deleteRouteStop = (trainId, stationId) => request(`/trains/${trainId}/route/stops/${stationId}`, { method: 'DELETE' });
 export const addCoach = (trainId, payload) => request(`/trains/${trainId}/coaches`, { method: 'POST', body: JSON.stringify(payload) });
 
 // Search & Availability
@@ -57,6 +58,8 @@ export const createBooking = (payload) => request('/bookings', { method: 'POST',
 export const getBooking = (pnr) => request(`/bookings/${pnr}`);
 export const getTicket = (pnr) => request(`/bookings/${pnr}/ticket`);
 export const getPayment = (pnr) => request(`/bookings/${pnr}/payment`);
+export const updateBooking = (pnr, payload) => request(`/bookings/${pnr}`, { method: 'PUT', body: JSON.stringify(payload) });
+export const deleteBooking = (pnr) => request(`/bookings/${pnr}`, { method: 'DELETE' });
 export const cancelBooking = (pnr, payload) => request(`/bookings/${pnr}/cancel`, { method: 'POST', body: JSON.stringify(payload) });
 export const getAllBookings = (status) => request(`/bookings${status ? `?status=${encodeURIComponent(status)}` : ''}`);
 
