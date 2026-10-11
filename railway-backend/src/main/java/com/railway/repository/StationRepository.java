@@ -60,4 +60,32 @@ public class StationRepository {
         Integer count = jdbc.queryForObject(sql, Integer.class, stationId);
         return count != null && count > 0;
     }
+
+    public int insert(String name, String code, String city) {
+        String sql = "INSERT INTO STATION (Station_Name, Station_Code, City) VALUES (?, ?, ?)";
+        org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
+        jdbc.update(con -> {
+            java.sql.PreparedStatement ps = con.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, name);
+            ps.setString(2, code);
+            ps.setString(3, city);
+            return ps;
+        }, keyHolder);
+        return keyHolder.getKey().intValue();
+    }
+
+    public void update(int stationId, String name, String code, String city) {
+        jdbc.update("UPDATE STATION SET Station_Name = ?, Station_Code = ?, City = ? WHERE Station_ID = ?",
+                name, code, city, stationId);
+    }
+
+    public boolean isReferencedInRoute(int stationId) {
+        String sql = "SELECT COUNT(*) FROM TRAIN_STATION WHERE Station_ID = ?";
+        Integer count = jdbc.queryForObject(sql, Integer.class, stationId);
+        return count != null && count > 0;
+    }
+
+    public void delete(int stationId) {
+        jdbc.update("DELETE FROM STATION WHERE Station_ID = ?", stationId);
+    }
 }

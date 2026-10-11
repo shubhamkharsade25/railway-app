@@ -19,20 +19,56 @@ public class TrainController {
 
     private final TrainService trainService;
     private final SearchService searchService;
+    private final com.railway.repository.StationRepository stationRepository;
 
-    public TrainController(TrainService trainService, SearchService searchService) {
+    public TrainController(TrainService trainService, SearchService searchService, com.railway.repository.StationRepository stationRepository) {
         this.trainService = trainService;
         this.searchService = searchService;
+        this.stationRepository = stationRepository;
     }
 
     @GetMapping
-    public ResponseEntity<List<TrainDto>> getAll() {
-        return ResponseEntity.ok(trainService.getAllActive());
+    public ResponseEntity<List<TrainDto>> getAll(@RequestParam(defaultValue = "false") boolean all) {
+        return ResponseEntity.ok(trainService.getAll(all));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TrainDto> getById(@PathVariable int id) {
         return ResponseEntity.ok(trainService.getById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<TrainDto> create(@jakarta.validation.Valid @RequestBody com.railway.dto.TrainRequest req) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(trainService.create(req));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TrainDto> update(
+            @PathVariable int id,
+            @jakarta.validation.Valid @RequestBody com.railway.dto.TrainRequest req) {
+        return ResponseEntity.ok(trainService.update(id, req));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable int id) {
+        trainService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/route/stops")
+    public ResponseEntity<Void> addRouteStop(
+            @PathVariable int id,
+            @jakarta.validation.Valid @RequestBody com.railway.dto.RouteStopRequest req) {
+        trainService.addRouteStop(id, req, stationRepository);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/{id}/coaches")
+    public ResponseEntity<Void> addCoach(
+            @PathVariable int id,
+            @jakarta.validation.Valid @RequestBody com.railway.dto.CoachRequest req) {
+        trainService.addCoachWithSeats(id, req);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).build();
     }
 
     @GetMapping("/{id}/route")

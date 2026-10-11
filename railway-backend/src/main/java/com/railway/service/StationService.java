@@ -27,4 +27,27 @@ public class StationService {
         return stationRepository.findById(stationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Station not found with ID: " + stationId));
     }
+
+    public StationDto create(com.railway.dto.StationRequest req) {
+        int id = stationRepository.insert(req.stationName().trim(), req.stationCode().trim().toUpperCase(), req.city().trim());
+        return getById(id);
+    }
+
+    public StationDto update(int stationId, com.railway.dto.StationRequest req) {
+        if (!stationRepository.existsById(stationId)) {
+            throw new ResourceNotFoundException("Station not found with ID: " + stationId);
+        }
+        stationRepository.update(stationId, req.stationName().trim(), req.stationCode().trim().toUpperCase(), req.city().trim());
+        return getById(stationId);
+    }
+
+    public void delete(int stationId) {
+        if (!stationRepository.existsById(stationId)) {
+            throw new ResourceNotFoundException("Station not found with ID: " + stationId);
+        }
+        if (stationRepository.isReferencedInRoute(stationId)) {
+            throw new com.railway.exception.ConflictException("Cannot delete station as it is referenced in train routes");
+        }
+        stationRepository.delete(stationId);
+    }
 }

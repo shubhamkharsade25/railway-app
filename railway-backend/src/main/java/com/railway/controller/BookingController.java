@@ -17,15 +17,29 @@ import java.util.Map;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final com.railway.service.CancellationService cancellationService;
 
-    public BookingController(BookingService bookingService) {
+    public BookingController(BookingService bookingService, com.railway.service.CancellationService cancellationService) {
         this.bookingService = bookingService;
+        this.cancellationService = cancellationService;
     }
 
     @PostMapping
     public ResponseEntity<BookingResponse> create(@Valid @RequestBody BookingRequest req) {
         BookingResponse response = bookingService.createBooking(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/{pnr}/cancel")
+    public ResponseEntity<com.railway.dto.CancellationResponse> cancel(
+            @PathVariable String pnr,
+            @Valid @RequestBody com.railway.dto.CancellationRequest req) {
+        return ResponseEntity.ok(cancellationService.cancelBooking(pnr, req));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Map<String, Object>>> getAll(@RequestParam(required = false) String status) {
+        return ResponseEntity.ok(bookingService.getAllBookings(status));
     }
 
     @GetMapping("/{pnr}")

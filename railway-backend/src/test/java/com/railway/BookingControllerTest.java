@@ -63,12 +63,32 @@ class BookingControllerTest {
         }
     }
 
+    static class StubCancellationService extends com.railway.service.CancellationService {
+        private com.railway.dto.CancellationResponse stubResponse;
+        private RuntimeException stubException;
+
+        StubCancellationService() {
+            super(null, java.time.Clock.systemDefaultZone());
+        }
+
+        void willReturn(com.railway.dto.CancellationResponse r) { this.stubResponse = r; this.stubException = null; }
+        void willThrow(RuntimeException e) { this.stubException = e; this.stubResponse = null; }
+
+        @Override
+        public com.railway.dto.CancellationResponse cancelBooking(String pnr, com.railway.dto.CancellationRequest req) {
+            if (stubException != null) throw stubException;
+            return stubResponse;
+        }
+    }
+
     private StubBookingService bookingService;
+    private StubCancellationService cancellationService;
 
     @BeforeEach
     void setup() {
         bookingService = new StubBookingService();
-        BookingController controller = new BookingController(bookingService);
+        cancellationService = new StubCancellationService();
+        BookingController controller = new BookingController(bookingService, cancellationService);
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(objectMapper);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -194,6 +214,28 @@ class BookingControllerTest {
         bookingService.willThrow(new BadRequestException("PNR must be exactly 10 digits"));
 
         mockMvc.perform(get("/api/bookings/INVALID"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void cancelBooking_happyPath_returns200() throws Exception {
+        cancellationService.willReturn(new com.railway.dto.CancellationResponse(
+                "1234567890", "CANCELLED", BigDecimal.valueOf(270.00), LocalDateTime.now()
+        ));
+
+        mockMvc.perform(post("/api/bookings/1234567890/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"reason\":\"Change of plans\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.refundAmount").value(270.00));
+    }
+
+    @Test
+    void cancelBooking_missingReason_returns400() throws Exception {
+        mockMvc.perform(post("/api/bookings/1234567890/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"reason\":\"\"}"))
                 .andExpect(status().isBadRequest());
     }
 }

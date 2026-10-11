@@ -173,6 +173,27 @@ public class BookingRepository {
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
+    public List<Map<String, Object>> findAllBookings(String status) {
+        String baseSql = """
+                SELECT b.Booking_ID AS bookingId, b.PNR AS pnr, b.Status AS status,
+                       t.Train_Number AS trainNumber, t.Train_Name AS trainName,
+                       ss.Station_Name AS sourceStationName, ds.Station_Name AS destStationName,
+                       b.Class_Type AS classType, b.Journey_Date AS journeyDate,
+                       b.Total_Fare AS totalFare, b.Booked_At AS bookedAt,
+                       b.Contact_Email AS contactEmail, b.Contact_Phone AS contactPhone,
+                       p.Payment_Status AS paymentStatus
+                FROM BOOKING b
+                JOIN TRAIN t ON t.Train_ID = b.Train_ID
+                JOIN STATION ss ON ss.Station_ID = b.Source_Station_ID
+                JOIN STATION ds ON ds.Station_ID = b.Destination_Station_ID
+                LEFT JOIN PAYMENT p ON p.Booking_ID = b.Booking_ID
+                """;
+        if (status != null && !status.isBlank()) {
+            return jdbc.queryForList(baseSql + " WHERE b.Status = ? ORDER BY b.Booked_At DESC", status.trim().toUpperCase());
+        }
+        return jdbc.queryForList(baseSql + " ORDER BY b.Booked_At DESC");
+    }
+
     /**
      * Get passengers with seat info for a booking.
      */

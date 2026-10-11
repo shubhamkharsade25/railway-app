@@ -260,6 +260,10 @@ public class BookingService {
         );
     }
 
+    public List<Map<String, Object>> getAllBookings(String status) {
+        return bookingRepository.findAllBookings(status);
+    }
+
     // ---- Helpers ----
 
     private String generateUniquePnr() {
