@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTicket, cancelBooking } from '../api/client';
+import { getTicket, cancelBooking, deleteBooking } from '../api/client';
 import { formatCurrency, formatDate, formatTime } from '../utils/formatters';
 import { Printer, XCircle, AlertCircle, CheckCircle, Train } from 'lucide-react';
 
@@ -75,11 +75,27 @@ export default function TicketView() {
         </button>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           {isConfirmed && (
-            <button className="btn btn-danger" onClick={() => setShowCancelModal(true)}>
+            <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: '#fca5a5' }} onClick={() => setShowCancelModal(true)}>
               <XCircle size={18} />
               Cancel Ticket
             </button>
           )}
+          <button
+            className="btn btn-danger"
+            onClick={async () => {
+              if (window.confirm(`Permanently delete booking PNR ${pnr} from the database? This will completely wipe all associated ticket records and release the seat.`)) {
+                try {
+                  await deleteBooking(pnr);
+                  alert(`Ticket PNR ${pnr} has been permanently deleted from the database.`);
+                  navigate('/admin');
+                } catch (err) {
+                  alert(err.message || 'Failed to delete ticket');
+                }
+              }
+            }}
+          >
+            Delete Booking
+          </button>
           <button className="btn btn-primary" onClick={handlePrint}>
             <Printer size={18} />
             Print Ticket
